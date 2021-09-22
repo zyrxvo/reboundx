@@ -124,10 +124,10 @@ int sign(int x) {
     return (x > 0) - (x < 0);
 }
 
-double alpha(double t, double tcrit) {
+double alpha(double t, double tau) {
     if (t < 0){ t = 0; }
-    if (t > tcrit){ t = tcrit; }
-    return 1 + 1e-4 * t/tcrit;
+    if (t > tau){ t = tau; }
+    return 1 - (1 - 1e-4) * t/tau;
 }
 
 double rebx_gr_potential_potential(struct rebx_extras* const rebx, const struct rebx_force* const gr_potential){
@@ -135,9 +135,9 @@ double rebx_gr_potential_potential(struct rebx_extras* const rebx, const struct 
     if (c == NULL){
         rebx_error(rebx, "Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
-    // double new_C = C / sqrt(alpha(rebx->sim->t, *c));
-    // const double C2 = new_C * new_C;
-    const double C2 = (*c)*(*c);
+    double new_C = C / sqrt(alpha(rebx->sim->t, *c));
+    const double C2 = new_C * new_C;
+    // const double C2 = (*c)*(*c);
     if (rebx->sim == NULL){
         rebx_error(rebx, ""); // rebx_error gives meaningful err
         return 0;
