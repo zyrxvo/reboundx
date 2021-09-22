@@ -118,12 +118,22 @@ static double rebx_calculate_gr_potential_potential(struct reb_simulation* const
     return H;
 }
 
+const double C = 10065.32012038219;
+
+int sign(int x) {
+    return (x > 0) - (x < 0);
+}
+
+double alpha(double t, double tcrit) {
+    if (t < 0){ t = 0; }
+    if (t > tcrit){ t = tcrit; }
+    return 1 + 1e-4 * t/tcrit;
+}
+
 double rebx_gr_potential_potential(struct rebx_extras* const rebx, const struct rebx_force* const gr_potential){
-    double* c = rebx_get_param(rebx, gr_potential->ap, "c");
-    if (c == NULL){
-        rebx_error(rebx, "Need to set speed of light in gr effect.  See examples in documentation.\n");
-    }
-    const double C2 = (*c)*(*c);
+    double* tcrit = rebx_get_param(rebx, gr_potential->ap, "c");
+    double new_C = C / sqrt(alpha(rebx->sim->t, *tcrit));
+    const double C2 = (new_C)*(new_C);
     if (rebx->sim == NULL){
         rebx_error(rebx, ""); // rebx_error gives meaningful err
         return 0;
