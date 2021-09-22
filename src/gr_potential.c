@@ -131,9 +131,13 @@ double alpha(double t, double tcrit) {
 }
 
 double rebx_gr_potential_potential(struct rebx_extras* const rebx, const struct rebx_force* const gr_potential){
-    double* tcrit = rebx_get_param(rebx, gr_potential->ap, "c");
-    double new_C = C / sqrt(alpha(rebx->sim->t, *tcrit));
-    const double C2 = (new_C)*(new_C);
+    double* c = rebx_get_param(rebx, gr_potential->ap, "c");
+    if (c == NULL){
+        rebx_error(rebx, "Need to set speed of light in gr effect.  See examples in documentation.\n");
+    }
+    // double new_C = C / sqrt(alpha(rebx->sim->t, *c));
+    // const double C2 = new_C * new_C;
+    const double C2 = (*c)*(*c);
     if (rebx->sim == NULL){
         rebx_error(rebx, ""); // rebx_error gives meaningful err
         return 0;
