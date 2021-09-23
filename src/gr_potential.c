@@ -112,7 +112,10 @@ void rebx_gr_potential(struct reb_simulation* const sim, struct rebx_force* cons
         reb_error(sim, "REBOUNDx Error: Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
     else{
-        double alpha = *c > 0 ? alpha_pos(sim->t, *c) : alpha_neg(sim->t, *c);
+        double alpha;
+        if (*c > 0) { alpha = alpha_pos(sim->t, *c); }
+        else if (*c < 0) { alpha = alpha_neg(sim->t, *c); }
+        else { alpha = 1; }
         double new_C = C / sqrt(alpha);
         const double C2 = new_C * new_C;
         // const double C2 = (*c)*(*c);
