@@ -66,6 +66,26 @@
 #include "rebound.h"
 #include "reboundx.h"
 
+
+const double C = 10065.32012038219; // In default REBOUND units AU/Yr2Pi
+
+int sign(int x) {
+    return (x > 0) - (x < 0);
+}
+
+// Assumes that tau is negative, correct to make tau positive.
+double alpha_neg(double t, double tau) {
+    if (t < 0){ t = 0; }
+    if (t > -tau){ t = -tau; }
+    return 1 - (1 - 1e-4) * t/(-tau);
+}
+
+double alpha_pos(double t, double tau) {
+    if (t < 0){ t = 0; }
+    if (t > tau){ t = tau; }
+    return 1 - (1 - 1e4) * t/tau;
+}
+
 static void rebx_calculate_gr_potential(struct reb_particle* const particles, const int N, const double C2, const double G){
     const struct reb_particle source = particles[0];
     const double prefac1 = 6.*(G*source.m)*(G*source.m)/C2;
@@ -92,7 +112,10 @@ void rebx_gr_potential(struct reb_simulation* const sim, struct rebx_force* cons
         reb_error(sim, "REBOUNDx Error: Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
     else{
-        const double C2 = (*c)*(*c);
+        double alpha = *c > 0 ? alpha_pos(sim->t, *c) : alpha_neg(sim->t, *c);
+        double new_C = C / sqrt(alpha);
+        const double C2 = new_C * new_C;
+        // const double C2 = (*c)*(*c);
         rebx_calculate_gr_potential(particles, N, C2, sim->G);
     }
 }
@@ -118,26 +141,12 @@ static double rebx_calculate_gr_potential_potential(struct reb_simulation* const
     return H;
 }
 
-const double C = 10065.32012038219;
-
-int sign(int x) {
-    return (x > 0) - (x < 0);
-}
-
-double alpha(double t, double tau) {
-    if (t < 0){ t = 0; }
-    if (t > tau){ t = tau; }
-    return 1 - (1 - 1e-4) * t/tau;
-}
-
 double rebx_gr_potential_potential(struct rebx_extras* const rebx, const struct rebx_force* const gr_potential){
     double* c = rebx_get_param(rebx, gr_potential->ap, "c");
     if (c == NULL){
         rebx_error(rebx, "Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
-    double new_C = C / sqrt(alpha(rebx->sim->t, *c));
-    const double C2 = new_C * new_C;
-    // const double C2 = (*c)*(*c);
+    const double C2 = (*c)*(*c);
     if (rebx->sim == NULL){
         rebx_error(rebx, ""); // rebx_error gives meaningful err
         return 0;
