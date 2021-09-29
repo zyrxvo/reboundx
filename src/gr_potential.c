@@ -69,21 +69,11 @@
 
 const double C = 10065.32012038219; // In default REBOUND units AU/Yr2Pi
 
-int sign(int x) {
-    return (x > 0) - (x < 0);
-}
-
-// Assumes that tau is negative, correct to make tau positive.
-double alpha_neg(double t, double tau) {
-    if (t < 0){ t = 0; }
-    if (t > -tau){ t = -tau; }
-    return 1 - (1 - 1e-4) * t/(-tau);
-}
-
-double alpha_pos(double t, double tau) {
+double alpha(double t, double tau) {
+    if (tau < 0) { tau = -tau;} // Ensure tau is positive.
     if (t < 0){ t = 0; }
     if (t > tau){ t = tau; }
-    return 1 - (1 - 1e4) * t/tau;
+    return 1 - (1 - 1e-4) * t/tau;
 }
 
 static void rebx_calculate_gr_potential(struct reb_particle* const particles, const int N, const double C2, const double G){
@@ -112,12 +102,8 @@ void rebx_gr_potential(struct reb_simulation* const sim, struct rebx_force* cons
         reb_error(sim, "REBOUNDx Error: Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
     else{
-        double alpha;
-        if (*c > 0) { alpha = alpha_pos(sim->t, *c); }
-        else if (*c < 0) { alpha = alpha_neg(sim->t, *c); }
-        else { alpha = 1; }
-        double new_C = C / sqrt(alpha);
-        const double C2 = new_C * new_C;
+        double a = *c == 0 ? 1 : alpha(sim->t, *c); // if the "c" parameter equals 0, then alpha = 1, else alpha is determined by the "c" parameter (tau) and the current time.
+        const double C2 = C * C / a;
         // const double C2 = (*c)*(*c);
         rebx_calculate_gr_potential(particles, N, C2, sim->G);
     }
