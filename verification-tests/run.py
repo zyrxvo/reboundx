@@ -7,14 +7,11 @@ twopi = 2.*np.pi
 tmax = twopi * 2e9  # Maximum integration time.
 n = int(argv[1]) # Simulation number.
 
-taus = np.insert(np.logspace(7, np.log10(2e9), 24), 0, 0) # Assuming 24 simulations, with taus that span from 1e7 yrs to 2e9 yrs.
-tau = twopi * np.sign(n) * taus[np.abs(n)] # Rate of change in c.
+taus = np.insert(np.logspace(7, np.log10(2e9), 48), 0, 0) # Assuming 48 simulations, with taus that span from 1e7 yrs to 2e9 yrs.
+tau = twopi * taus[n] # Rate of change in c.
 
 folder = 'archives/'
-if n == 0:
-    filename = folder + 'gr_0.bin'
-else:
-    filename = folder + 'gr_' + ('m' if n<0 else 'p') + str(abs(n)) + '.bin'
+filename = folder + 'gr_{0:04d}.bin'.format(n)
 
 try:
     sim = rebound.Simulation(filename)
@@ -42,11 +39,6 @@ gr = rebx.load_force('gr_potential')
 rebx.add_force(gr)
 gr.params['c'] = tau # Set the rate of change in c.
 
-print('Start integrating.')
-try:
-    sim.integrate(tmax, exact_finish_time=False)
-except rebound.Escape as esc:
-    print(esc)
-except rebound.Encounter as enc:
-    print(enc)
-print('Finished integrating.')
+try: sim.integrate(tmax, exact_finish_time=False)
+except rebound.Escape as esc: print(esc)
+except rebound.Encounter as enc: print(enc)
