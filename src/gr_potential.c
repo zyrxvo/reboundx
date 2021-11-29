@@ -73,12 +73,13 @@ double alpha(double t, double tau) {
     if (tau < 0) { tau = -tau;} // Ensure tau is positive.
     if (t < 0){ t = 0; }
     if (t > tau){ t = tau; }
-    return 1 - (1 - 1e-4) * t/tau;
+    return 1 - t/tau;
 }
 
-static void rebx_calculate_gr_potential(struct reb_particle* const particles, const int N, const double C2, const double G){
+static void rebx_calculate_gr_potential(struct reb_particle* const particles, const int N, const double al, const double G){
     const struct reb_particle source = particles[0];
-    const double prefac1 = 6.*(G*source.m)*(G*source.m)/C2;
+    const double C2 = C * C;
+    const double prefac1 = al*6.*(G*source.m)*(G*source.m)/C2;
     for (int i=1; i<N; i++){
         const struct reb_particle p = particles[i];
         const double dx = p.x - source.x;
@@ -102,10 +103,8 @@ void rebx_gr_potential(struct reb_simulation* const sim, struct rebx_force* cons
         reb_error(sim, "REBOUNDx Error: Need to set speed of light in gr effect.  See examples in documentation.\n");
     }
     else{
-        double a = *c == 0 ? 1 : alpha(sim->t, *c); // if the "c" parameter equals 0, then alpha = 1, else alpha is determined by the "c" parameter (tau) and the current time.
-        const double C2 = C * C / a;
-        // const double C2 = (*c)*(*c);
-        rebx_calculate_gr_potential(particles, N, C2, sim->G);
+        double al = *c == 0 ? 1 : alpha(sim->t, *c); // if the "c" parameter equals 0, then alpha is always 1, else alpha is determined by the "c" parameter (tau) and the current time.
+        rebx_calculate_gr_potential(particles, N, al, sim->G);
     }
 }
 
