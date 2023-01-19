@@ -1,5 +1,5 @@
 import rebound
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from .extras import Param, Node, Force, Operator, Extras, REBX_CTYPES
 from . import clibreboundx
 from ctypes import byref, c_double, c_int, c_int32, c_int64, c_uint, c_uint32, c_longlong, c_char_p, POINTER, cast
